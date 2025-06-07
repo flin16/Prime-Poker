@@ -5,10 +5,13 @@ from typing import Literal
 INIT_CARDS = 5
 
 
-@dataclass
 class Player:
     name: str
     cards: list[Card] = []
+
+    def __init__(self, name: str):
+        self.name = name
+        self.cards = []
 
 
 class Game:
@@ -18,6 +21,18 @@ class Game:
     current_player: int = 0
     highest = 0
     reverted = False
+
+    def public_info(self) -> dict:
+        return {
+            "current_player": self.current_player,
+            "highest": self.highest,
+            "reverted": self.reverted,
+            "current_state": self.current_state,
+            "players": [
+                {"name": player.name, "cards_num": len(player.cards)}
+                for player in self.player
+            ],
+        }
 
     def cmp(self, num1: int, num2: int) -> bool:
         if self.reverted:
