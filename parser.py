@@ -1,14 +1,15 @@
+import lib
 from lark import Lark, Transformer, v_args
 
 grammar = r"""
-    start: expr ("=" NUMBER)?           -> eq
+    start: expr ("=" INT)?           -> eq
 
     expr: factor ("*" factor)*          -> chain
 
-    factor: NUMBER "^" NUMBER           -> power
-          | NUMBER                      -> number
+    factor: INT "^" INT           -> power
+          | INT                      -> number
 
-    %import common.NUMBER
+    %import common.INT
     %import common.WS
     %ignore WS
 """
@@ -17,10 +18,17 @@ grammar = r"""
 @v_args(inline=True)
 class CalcTransformer(Transformer):
     def number(self, n):
-        return float(n)
+        n = int(n)
+        if not lib.is_prime(n):
+            raise ValueError(f"{n} is not a prime number")
+        return n
 
     def power(self, base, exp):
-        return float(base) ** float(exp)
+        base = int(base)
+        exp = int(exp)
+        if not lib.is_prime(base) or not lib.is_prime(exp):
+            raise ValueError(f"Base {base} or exponent {exp} must be prime numbers")
+        return base**exp
 
     def chain(self, first, *factors):
         result = first
