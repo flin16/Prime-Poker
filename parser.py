@@ -40,25 +40,46 @@ class CalcTransformer(Transformer):
         if expected is None:
             return value
         else:
-            return value == float(expected)
+            if value == float(expected):
+                return value
+            else:
+                return False
 
 
-if __name__ == "__main__":
+def is_valid_input(text: str) -> bool:
     parser = Lark(grammar, parser="lalr", transformer=CalcTransformer())
+    try:
+        parser.parse(text)
+        return True
+    except Exception:
+        return False
 
-    examples = [
-        "2 * 3 * 4",  # 24
-        "2 ^ 3",  # 8
-        "2 ^ 3 * 5",  # 40
-        "2 * 3 ^ 2",  # 18 ✅
-        "2 ^ 3 * 3 * 5 = 120",  # True
-        "2 * 3 ^ 2 = 18",  # True
-        "2 ^ 3 ^ 2",  # ❌ 幂嵌套不合法
-    ]
 
+examples = [
+    "2 * 3 * 4",  # 24
+    "2 ^ 3",  # 8
+    "2 ^ 3 * 5",  # 40
+    "2 * 3 ^ 2",  # 18 ✅
+    "2 ^ 3 * 3 * 5 = 120",  # True
+    "2 * 3 ^ 2 = 18",  # True
+    "2 ^ 3 ^ 2",  # ❌
+]
+
+
+def test1():
+    parser = Lark(grammar, parser="lalr", transformer=CalcTransformer())
     for ex in examples:
         try:
             result = parser.parse(ex)
             print(f"{ex:25} => {result}")
         except Exception as e:
             print(f"{ex:25} => ❌ Error: {e}")
+
+
+def test2():
+    for ex in examples:
+        print(is_valid_input(ex), ex)
+
+
+if __name__ == "__main__":
+    test1()

@@ -1,20 +1,43 @@
 import asyncio
 from game import Game
 from client import PORT  # Importing PORT from client.py
+from dataclasses import dataclass
+import lib
+import parser
 
-G = Game(["Alice", "Bob", "Charlie"])  # Example player names
+players_names = []
+queue = asyncio.Queue()
+queue_lock = asyncio.Lock()
+G = None
+
+
+@dataclass
+class Message:
+    sender: str
+    content: str
 
 
 async def send_game_state(writer):
     while True:
-        game_state = str(G.public_info())
-        writer.write(game_state.encode())
-        await writer.drain()
+        if G:
+            game_state = str(G.public_info())
+            writer.write(game_state.encode())
+            await writer.drain()
         await asyncio.sleep(1)  # Adjust the frequency of updates as needed
 
 
+def append_player(name: str) -> str:
+    if name in players_names:
+        name = name + "_1"
+    players_names.append(name)
+    return name
+
+
 async def handle_client(reader, writer):
-    print("Client connected")
+    peername = writer.get_extra_info("peername")[0]
+    peername = append_player(peername)
+    print("New client connected:", peername)
+    players_names.append(writer)
     task = asyncio.create_task(send_game_state(writer))
     try:
         while True:
@@ -22,9 +45,8 @@ async def handle_client(reader, writer):
             if not data:
                 break
             message = data.decode()
-            print(f"Received: {message}")
-            writer.write(data)
-            await writer.drain()
+            async with queue_lock:
+                queue.put_nowait(Message(sender=peername, content=message))
     finally:
         task.cancel()
         await task
@@ -32,8 +54,31 @@ async def handle_client(reader, writer):
         writer.close()
 
 
+async def process_queue():
+    while True:
+        message = await queue.get()
+        content = message.content
+        sender = message.sender
+        if content is None:
+            continue
+        if content.startswith("s"):
+            global G
+            if G is None:
+                G = Game(players_names)
+        elif content.startswith("c"):
+            if G is None:
+                players_names[players_names.index(sender)] = content[1:].strip()
+        else:
+            if G is None:
+                continue
+            expr = content.replace(" ", "")
+            if not parser.is_valid_input(expr):
+                continue
+
+
 async def main():
     server = await asyncio.start_server(handle_client, "0.0.0.0", PORT)
+    asyncio.create_task(process_queue())
     print(f"Server started on port { PORT }")
     async with server:
         await server.serve_forever()
