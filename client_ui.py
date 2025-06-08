@@ -60,7 +60,8 @@ def recv_thread(sock):
             game_lines.extend(lines)
             if len(game_lines) > 10:
                 game_lines = game_lines[-10:]
-        except:
+        except Exception as e:
+            print(f"Error receiving data: {e}")
             break
 
 
@@ -93,7 +94,7 @@ def main(stdscr):
         for i, line in enumerate(states):
             stdscr.addstr(i, 0, line)
 
-        height, width = stdscr.getmaxyx()
+        height, _ = stdscr.getmaxyx()
         stdscr.addstr(height - 2, 0, "Input line:")
         stdscr.addstr(height - 1, 0, input_str)
 

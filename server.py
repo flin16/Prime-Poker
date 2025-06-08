@@ -22,7 +22,7 @@ async def send_game_state(writer):
     while True:
         if G:
             game_state = G.public_info()
-            game_state["your_hand"] = G.player[peername].cards
+            game_state["your_hand"] = G.get_player(peername).cards
             writer.write(str(game_state).encode())
             await writer.drain()
         await asyncio.sleep(1)  # Adjust the frequency of updates as needed

@@ -1,4 +1,3 @@
-import asyncio
 import socket
 
 PORT = 8888

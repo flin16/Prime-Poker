@@ -1,6 +1,5 @@
-from dataclasses import dataclass
 from card import Card, Deck
-from typing import Literal
+from typing import Literal, cast
 
 INIT_CARDS = 5
 
@@ -74,10 +73,11 @@ class Game:
             raise ValueError("Game is not in playing state")
         if not cards:
             raise ValueError("No cards to play")
-        if isinstance(cards[0], int):
-            cards = [Card("JOKER", rank) for rank in cards]
         if not self.cmp(value, self.highest):
             return False
+        if isinstance(cards[0], int):
+            cards = [Card("JOKER", rank) for rank in cards]
+        cards = cast(list[Card], cards)
         if not self.check_enough(cards):
             return False
         for card in cards:
