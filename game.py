@@ -36,7 +36,7 @@ class Game:
 
     def cmp(self, num1: int, num2: int) -> bool:
         if num2 == 0:
-            return True
+            return num1 > 0
         if self.reverted:
             return num1 < num2
         return num1 > num2
@@ -57,17 +57,21 @@ class Game:
             f"Player {self.player[self.current_player].name} has no cards left. Game over!"
         )
 
-    # TODO: Implement the game logic for playing cards, dropping cards, and checking win conditions.
     def play_cards(self, cards: list[Card], value: int) -> bool:
         """Play a list of cards from the current player's hand"""
         if self.current_state != "playing":
             raise ValueError("Game is not in playing state")
         if not cards:
             raise ValueError("No cards to play")
-
+        if not self.cmp(value, self.highest):
+            return False
         if not self.check_enough(cards):
             return False
-        self.check_win()
+        for card in cards:
+            self.play_card(card)
+        if not self.check_win():
+            self.next_player()
+        return True
 
     def check_enough(self, cards: list[Card]) -> bool:
         def count(card: list[Card]) -> list[int]:
@@ -93,10 +97,12 @@ class Game:
         self.player[self.current_player].cards.remove(card)
         self.check_win()
 
-    def check_win(self):
+    def check_win(self) -> bool:
         if not self.player[self.current_player].cards:
             self.current_state = "end"
             self.end_game()
+            return True
+        return False
 
     def play_card(self, card: Card):
         if self.current_state != "playing":
