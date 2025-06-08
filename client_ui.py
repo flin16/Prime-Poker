@@ -25,7 +25,7 @@ def render_game_state(game_state: dict) -> list[str]:
     state = game_state.get("current_state", "unknown")
     highest = game_state.get("highest", "?")
     reverted = game_state.get("reverted", False)
-
+    your_hand = game_state.get("your_hand", [])
     lines.append(f"State: {state:<12} Current Player: {current_name}")
     lines.append(f"Highest Bid: {highest:<10} Reverted: {'Yes' if reverted else 'No'}")
     lines.append("")
@@ -42,6 +42,9 @@ def render_game_state(game_state: dict) -> list[str]:
         lines.append(f"│ {player['name']:<10} │ {display_cards:<10} │{mark}")
 
     lines.append("└────────────┴────────────┘")
+    lines.append(
+        your_hand and f"Your Hand: {' '.join(your_hand)}" or "Your Hand: Empty"
+    )
 
     return lines
 
@@ -76,7 +79,6 @@ def main(stdscr):
     while True:
         stdscr.clear()
 
-        # 假设 game_state 是你从服务器拿到的数据（已解析为 dict）
         raw: dict = {}
         if game_lines:
             logging.debug(f"Game lines: {game_lines[-1]}")

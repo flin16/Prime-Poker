@@ -55,6 +55,14 @@ def is_valid_input(text: str) -> bool:
         return False
 
 
+def evaluate_expression(text: str) -> int | None:
+    parser = Lark(grammar, parser="lalr", transformer=CalcTransformer())
+    try:
+        return int(str(parser.parse(text)))
+    except Exception as e:
+        return None
+
+
 examples = [
     "2 * 3 * 4",  # 24
     "2 ^ 3",  # 8
@@ -81,5 +89,11 @@ def test2():
         print(is_valid_input(ex), ex)
 
 
+def test3():
+    res = evaluate_expression("2 * 3 ^ 2 = 18")
+    print(type(res))
+    print(res)
+
+
 if __name__ == "__main__":
-    test1()
+    ...

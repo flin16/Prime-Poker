@@ -48,6 +48,17 @@ class Game:
             player.cards = [self.deck.draw() for _ in range(INIT_CARDS)]
         self.current_state = "playing"
 
+    def get_current_hand(self) -> list[Card]:
+        """Get the current player's hand"""
+        return self.player[self.current_player].cards
+
+    def get_player(self, name: str) -> Player:
+        """Get a player by name"""
+        for player in self.player:
+            if player.name == name:
+                return player
+        raise ValueError(f"Player {name} not found")
+
     def next_player(self):
         self.current_player = (self.current_player + 1) % len(self.player)
 
@@ -57,12 +68,14 @@ class Game:
             f"Player {self.player[self.current_player].name} has no cards left. Game over!"
         )
 
-    def play_cards(self, cards: list[Card], value: int) -> bool:
+    def play_cards(self, cards: list[Card] | list[int], value: int) -> bool:
         """Play a list of cards from the current player's hand"""
         if self.current_state != "playing":
             raise ValueError("Game is not in playing state")
         if not cards:
             raise ValueError("No cards to play")
+        if isinstance(cards[0], int):
+            cards = [Card("JOKER", rank) for rank in cards]
         if not self.cmp(value, self.highest):
             return False
         if not self.check_enough(cards):
@@ -105,16 +118,23 @@ class Game:
         return False
 
     def play_card(self, card: Card):
+        # Do not add side effects to the card, just remove it from the player's hand
         if self.current_state != "playing":
             raise ValueError("Game is not in playing state")
-        if card not in self.player[self.current_player].cards:
-            raise ValueError("Card not in player's hand")
 
-        if self.cmp(card.rank, self.highest):
-            self.highest = card.rank
-            self.next_player()
-            # TODO: add side effect for card played
-        else:
-            raise ValueError(
-                f"Card rank is not higher({self.reverted}) than the current highest."
-            )
+        for card in self.player[self.current_player].cards:
+            if card.rank == card.rank:
+                self.player[self.current_player].cards.remove(card)
+                break
+
+
+def test1():
+    game = Game(["Alice", "Bob"])
+    game.player[0].cards = [Card("♠️", 1), Card("♥️", 3)]
+    print(game.public_info())
+    print(game.play_cards([Card("♠️", 3)], 3))
+    print(game.public_info())
+
+
+if __name__ == "__main__":
+    test1()

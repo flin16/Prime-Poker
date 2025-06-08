@@ -14,6 +14,7 @@ def is_prime(n):
 def filter_numbers(s) -> list[int]:
     """Filter and return prime numbers from a string."""
     numbers = re.findall(r"\d+", s)
+    numbers = list(map(int, numbers))
     for number in numbers:
         if number < 1 or number > 13:
             return []

@@ -18,24 +18,24 @@ class Message:
 
 
 async def send_game_state(writer):
+    peername = str(writer.get_extra_info("peername"))
     while True:
         if G:
-            game_state = str(G.public_info())
-            writer.write(game_state.encode())
+            game_state = G.public_info()
+            game_state["your_hand"] = G.player[peername].cards
+            writer.write(str(game_state).encode())
             await writer.drain()
         await asyncio.sleep(1)  # Adjust the frequency of updates as needed
 
 
 def append_player(name: str) -> str:
-    if name in players_names:
-        name = name + "_1"
     players_names.append(name)
     return name
 
 
 async def handle_client(reader, writer):
-    peername = writer.get_extra_info("peername")[0]
-    peername = append_player(peername)
+    peername = writer.get_extra_info("peername")
+    peername = append_player(str(peername))
     print("New client connected:", peername)
     players_names.append(writer)
     task = asyncio.create_task(send_game_state(writer))
@@ -57,7 +57,7 @@ async def handle_client(reader, writer):
 async def process_queue():
     while True:
         message = await queue.get()
-        content = message.content
+        content = message.content.strip()
         sender = message.sender
         if content is None:
             continue
@@ -74,6 +74,12 @@ async def process_queue():
             expr = content.replace(" ", "")
             if not parser.is_valid_input(expr):
                 continue
+            cards = lib.filter_numbers(expr)
+            value = parser.evaluate_expression(expr)
+            if value is None:
+                continue
+            if G.play_cards(cards, value):
+                print(f"Player {sender} played cards: {cards} with value {value}")
 
 
 async def main():
