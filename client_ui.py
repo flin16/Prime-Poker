@@ -4,7 +4,7 @@ import threading
 import logging
 
 logging.basicConfig(
-    filename="client_ui.log",
+    filename="/tmp/client_ui.log",
     level=logging.DEBUG,
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
@@ -52,6 +52,7 @@ def render_game_state(game_state: dict) -> list[str]:
 def recv_thread(sock):
     global game_lines
     while True:
+        logging.debug(f"game_lines: {game_lines}")
         try:
             data = sock.recv(1024)
             if not data:
@@ -61,7 +62,7 @@ def recv_thread(sock):
             if len(game_lines) > 10:
                 game_lines = game_lines[-10:]
         except Exception as e:
-            print(f"Error receiving data: {e}")
+            logging.error(f"Error receiving data: {e}")
             break
 
 
@@ -76,19 +77,13 @@ def main(stdscr):
     threading.Thread(target=recv_thread, args=(sock,), daemon=True).start()
 
     input_str = ""
-    raw_cache: dict = {}
     while True:
         stdscr.clear()
 
-        raw: dict = {}
+        raw = {}
         if game_lines:
             logging.debug(f"Game lines: {game_lines[-1]}")
-            try:
-                raw = eval(game_lines[-1])
-                raw_cache = raw
-            except Exception as e:
-                logging.error(f"Error parsing game state: {e}")
-                raw = raw_cache
+            raw = eval(game_lines[-1])
         states = render_game_state(raw)
 
         for i, line in enumerate(states):

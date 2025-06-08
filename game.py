@@ -67,6 +67,7 @@ class Game:
             f"Player {self.player[self.current_player].name} has no cards left. Game over!"
         )
 
+    # TODO: add 57 and 1728 logic
     def play_cards(self, cards: list[Card] | list[int], value: int) -> bool:
         """Play a list of cards from the current player's hand"""
         if self.current_state != "playing":
@@ -87,7 +88,7 @@ class Game:
         return True
 
     def check_enough(self, cards: list[Card]) -> bool:
-        def count(card: list[Card]) -> list[int]:
+        def count(cards: list[Card]) -> list[int]:
             cnt = [0] * 14
             for c in cards:
                 cnt[c.rank] += 1

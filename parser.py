@@ -60,6 +60,7 @@ def evaluate_expression(text: str) -> int | None:
     try:
         return int(str(parser.parse(text)))
     except Exception as e:
+        print(f"Error evaluating expression '{text}': {e}")
         return None
 
 
